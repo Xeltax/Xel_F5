@@ -1,0 +1,3 @@
+Config = {
+    EnableJsFourIdCard = true
+}

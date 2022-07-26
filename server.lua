@@ -7,7 +7,7 @@ AddEventHandler('esx:getPlayerFromId', function(source, cb)
 	cb(Users[source])
 end)
 
-local Webhook = 'https://discord.com/api/webhooks/973685372771000390/I2WFHvtMBwgtyhUF07nuU0GKEgk-buZyeFzS6iNZC7pF-cySZUD2BB-2GBt9_4ogqNmO'
+local Webhook = '' -- votre webhook
 
 -- Gestion Give Argent Portefeuille --
 

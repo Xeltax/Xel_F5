@@ -17,7 +17,8 @@ client_scripts {
     'src/elements/*.lua',
     'src/items/*.lua',
     
-    "client.lua",
+    'client.lua',
+    'config.lua',
 }
 
 server_scripts {

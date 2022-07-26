@@ -14,6 +14,8 @@ local societymoney, societymoney2, disable, admin, Checked, rang, color = nil, n
 local DoorIndex = 1; -- variable pour la liste des portes de voiture
 local DoorList = {"Avant Gauche", "Avant Droit", "Arrière Gauche", "Arrière Droit", "Capot", "Coffre"} -- variable pour les portes de voiture
 local avantg, avantd, arriereg, arriered, capot, coffre = false, false, false, false, false, false -- variable pour les portes de voiture
+local CardIndex = 1;
+local CardList = {"Donner", "Regarder"} -- variable pour les cartes d'identité
 
 local noclip, showCoords, godmode, ghostmode, showName, gamerTags = false, false, false, false, false, {}
 
@@ -107,6 +109,7 @@ function OpenF5Menu()
 
 		Perso:IsVisible(function(Items)
 			-- Items
+
 			Items:AddButton("💵 Portefeuille", nil, { IsDisabled = false, RightLabel = "~m~→→" }, function(onSelected)
 
 			end, SubMenu)
@@ -208,7 +211,87 @@ function OpenF5Menu()
 
 					end, DirtyCashSubmenu)
 				end
-			end	
+			end
+			
+			if Config.EnableJsFourIdCard == true then
+
+				Items:AddList("Carte d'identité", CardList, CardIndex, nil, { IsDisabled = false }, function(Index, onSelected, onListChange)
+					if (onListChange) then
+						CardIndex = Index;
+					end
+
+					if (onSelected) then
+
+						if Index == 1 then 
+
+							closestPlayer, closestDistance = ESX.Game.GetClosestPlayer()
+		
+							if closestDistance ~= -1 and closestDistance <= 3.0 then
+								TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(closestPlayer))
+							else
+								ESX.ShowNotification("~r~Aucun joueur à proximité")
+							end
+
+						elseif Index == 2 then
+							TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(PlayerId()))
+						end
+				
+					end
+					
+				end)
+
+				Items:AddList("Permis de conduire", CardList, CardIndex, nil, { IsDisabled = false }, function(Index, onSelected, onListChange)
+					if (onListChange) then
+						CardIndex = Index;
+					end
+
+					if (onSelected) then
+
+						if Index == 1 then 
+
+							closestPlayer, closestDistance = ESX.Game.GetClosestPlayer()
+		
+							if closestDistance ~= -1 and closestDistance <= 3.0 then
+								TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(closestPlayer), 'driver')
+							else
+								ESX.ShowNotification("~r~Aucun joueur à proximité")
+							end
+
+						elseif Index == 2 then
+							TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(PlayerId()), 'driver')
+						end
+				
+					end
+					
+				end)
+
+				Items:AddList("Permis de port d'arme", CardList, CardIndex, nil, { IsDisabled = false }, function(Index, onSelected, onListChange)
+					if (onListChange) then
+						CardIndex = Index;
+					end
+
+					if (onSelected) then
+
+						if Index == 1 then 
+
+							closestPlayer, closestDistance = ESX.Game.GetClosestPlayer()
+		
+							if closestDistance ~= -1 and closestDistance <= 3.0 then
+								TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(closestPlayer), 'weapon')
+							else
+								ESX.ShowNotification("~r~Aucun joueur à proximité")
+							end
+
+						elseif Index == 2 then
+							TriggerServerEvent('jsfour-idcard:open', GetPlayerServerId(PlayerId()), GetPlayerServerId(PlayerId()), 'weapon')
+						end
+				
+					end
+					
+				end)
+				
+			end
+
 
 		end, function()
 			-- Panels
