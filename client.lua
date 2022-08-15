@@ -110,6 +110,12 @@ function OpenF5Menu()
 		Perso:IsVisible(function(Items)
 			-- Items
 
+			Items:AddButton("📦 Inventaire", nil, { IsDisabled = false, RightLabel = "~m~→→" }, function(onSelected)
+				if onSelected then
+					OpenInventory()
+				end
+			end)
+
 			Items:AddButton("💵 Portefeuille", nil, { IsDisabled = false, RightLabel = "~m~→→" }, function(onSelected)
 
 			end, SubMenu)
@@ -640,7 +646,7 @@ function OpenF5Menu()
 				end
 			end)
 
-			Items:AddButton("📦 Licencier une personne", nil, { IsDisabled = false, RightLabel = "~m~→→" }, function(onSelected)
+			Items:AddButton("⛔️ Licencier une personne", nil, { IsDisabled = false, RightLabel = "~m~→→" }, function(onSelected)
 				if  (onSelected) then
 					if ESX.PlayerData.job.grade_name == 'boss' then
 						local closestPlayer, closestDistance = ESX.Game.GetClosestPlayer()
@@ -1072,7 +1078,6 @@ function OpenF5Menu()
 						z = tonumber(z)
 						
 						if type(x) == 'number' and type(y) == 'number' and  type(z) == 'number' then
-							print(plyId)
 							ExecuteCommand("setcoords " .. x .. " " .. y .. " " .. z)
 						end
 					end
@@ -1175,6 +1180,112 @@ function OpenF5Menu()
 		end)
 	end
 	RageUI.Visible(MainMenu, not RageUI.Visible(MainMenu))
+end
+
+function OpenInventory()
+	local Inventory = RageUI.CreateMenu("Xel_F5", "Inventaire", 1, 1, "commonmenu", "gradient_bgd", 255, --[[Rouge]] 255, --[[Vert]] 0, --[[Bleu]] 0)
+	local Option = RageUI.CreateSubMenu(Inventory, "Inventaire", "Choix de l'action")
+
+	local items = {}
+
+	ESX.TriggerServerCallback('Xel_F5:getPlayerInventory', function(inventory)
+		function RageUI.PoolMenus:Example()
+			Inventory:IsVisible(function(Items)
+				-- Item
+				Items:AddSeparator("~b~↓~s~    Votre Inventaire    ~b~↓~s~")
+
+				for i=1, #inventory.items, 1 do
+					local item = inventory.items[i]
+		
+					if item.count > 0 then
+						Items:AddButton("~b~→~s~ "..item.label, nil, { IsDisabled = false , RightLabel = "x ~o~"..item.count}, function(onSelected)
+							items = inventory.items[i]
+						end, Option)
+					end
+				end
+
+			end, function(Panels)
+			end)
+
+			Option:IsVisible(function(Items)
+				-- Item
+
+				Items:AddButton("Utiliser", nil, { IsDisabled = false , RightLabel = "~y~→~s~"}, function(onSelected)
+					if onSelected then
+						if items.usable then
+							TriggerServerEvent('esx:useItem', items.name)
+							OpenInventory()
+						else
+							ESX.ShowNotification("~r~"..items.label.. "~s~ ne peut pas être utilisé")
+						end
+					end
+				end)
+
+				Items:AddButton("Donner", nil, { IsDisabled = false , RightLabel = "~y~→~s~"}, function(onSelected)
+					if onSelected then
+						local closestPlayer, closestDistance = ESX.Game.GetClosestPlayer()
+
+						if closestDistance ~= -1 and closestDistance <= 3 then
+							local closestPed = GetPlayerPed(closestPlayer)
+
+							if IsPedOnFoot(closestPed) then
+								if items.name ~= nil and items.count > 0 then
+									local amount = KeyboardInput("Montant à donner :", "", 20)
+
+									if amount ~= nil then
+										amount = tonumber(amount)
+						
+										if type(amount) == 'number' then
+											TriggerServerEvent('esx:giveInventoryItem', GetPlayerServerId(closestPlayer), 'item_standard', items.name, amount)
+											OpenInventory()
+										end
+									end
+								else
+									ESX.ShowNotification("Montant Invalide")
+								end
+							else
+								ESX.ShowNotification("Action impossible dans un véhicule")
+							end
+						else
+							ESX.ShowNotification("Personne à proximité")
+						end
+					end
+				end)
+
+				Items:AddButton("Jeter", nil, { IsDisabled = false , RightLabel = "~y~→~s~"}, function(onSelected)
+					if onSelected then
+						if items.canRemove then
+							if IsPedOnFoot(PlayerPedId()) then
+								if items.name ~= nil and items.count > 0  then
+									local amount = KeyboardInput("Montant à donner :", "", 20)
+	
+									if amount ~= nil then
+										amount = tonumber(amount)
+						
+										if type(amount) == 'number' then
+											TriggerServerEvent('esx:removeInventoryItem', 'item_standard', items.name, amount)
+											OpenInventory()
+										end
+									end
+								else
+									ESX.ShowNotification("Montant Invalide")
+								end
+							else
+								ESX.ShowNotification("Action impossible dans un véhicule")
+							end
+						else
+							ESX.ShowNotification("~r~"..items.label.. "~s~ ne peut pas être jeter")
+						end
+					end
+				end)
+
+
+			end, function(Panels)
+			end)
+		end
+	end)
+
+	RageUI.Visible(Inventory, not RageUI.Visible(Inventory))
 end
 
 --Message text joueur
@@ -1525,34 +1636,36 @@ function TpSurMarker()
 	end)
 end
 
+RegisterCommand('f5Menu', function()
+	RefreshMoney()
+	RefreshMoney2()
+
+	ESX.TriggerServerCallback('Xel_F5:GetUserAdmin', function(plyGroup)
+		if plyGroup ~= nil and (plyGroup == 'mod' or plyGroup == 'admin' or plyGroup == 'superadmin') then
+			rang = plyGroup
+			admin = false
+		elseif plyGroup ~= nil and plygroup == 'user' then
+			admin = true
+		end
+	end)
+
+	ESX.PlayerData = ESX.GetPlayerData()
+
+	disable = true
+
+	OpenF5Menu()
+end, false)
+
+RegisterKeyMapping('f5Menu', 'Ouvrir le Menu F5', 'keyboard', 'F5')
+
 Citizen.CreateThread(function()
 	
 	while true do
 
-		local wait = 0
-
-		if IsControlJustPressed(0, 166) then
-
-			RefreshMoney()
-			RefreshMoney2()
-
-			ESX.TriggerServerCallback('Xel_F5:GetUserAdmin', function(plyGroup)
-				if plyGroup ~= nil and (plyGroup == 'mod' or plyGroup == 'admin' or plyGroup == 'superadmin') then
-					rang = plyGroup
-					admin = false
-				elseif plyGroup ~= nil and plygroup == 'user' then
-					admin = true
-				end
-			end)
-
-			ESX.PlayerData = ESX.GetPlayerData()
-
-			disable = true
-
-			OpenF5Menu()
-		end
+		local wait = 750
 
 		if noclip then
+			wait = 0
 			local plyPed = PlayerPedId()
 			local plyCoords = GetEntityCoords(plyPed, false)
 			local camCoords = getCamDirection()
@@ -1570,16 +1683,14 @@ Citizen.CreateThread(function()
 		end
 
 		if showCoords then
+			wait = 0
 			local plyPed = PlayerPedId()
 			local plyCoords = GetEntityCoords(plyPed, false)
 			Text('~r~X~s~: ' .. ESX.Math.Round(plyCoords.x, 2) .. ' ~b~Y~s~: ' .. ESX.Math.Round(plyCoords.y, 2) .. ' ~g~Z~s~: ' .. ESX.Math.Round(plyCoords.z, 2) .. ' ~y~Angle~s~: ' .. ESX.Math.Round(GetEntityPhysicsHeading(plyPed), 2))
 		end
 
-		if IsControlPressed(1, 19) and IsControlJustReleased(1, 46) and IsInputDisabled(2) then
-			TpSurMarker()
-		end
-
 		if showName then
+			wait = 0
 			local plyPed = PlayerPedId()
 
 			for k, v in ipairs(ESX.Game.GetPlayers()) do

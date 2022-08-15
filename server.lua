@@ -294,3 +294,10 @@ AddEventHandler('Xel_F5:SendWebhook', function(nom, type, info, color)
 	}
 	PerformHttpRequest(Webhook, function(err, text, headers) end, 'POST', json.encode({username = '', embeds = information}), {['Content-Type'] = 'application/json'})
 end)
+
+ESX.RegisterServerCallback('Xel_F5:getPlayerInventory', function(source, cb)
+	local xPlayer = ESX.GetPlayerFromId(source)
+	local items   = xPlayer.inventory
+	
+	cb({items = items})
+end)
